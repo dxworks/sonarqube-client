@@ -6,24 +6,24 @@ import com.google.api.client.http.HttpResponse;
 import lombok.SneakyThrows;
 import org.dxworks.sonarqube.client.http.HttpService;
 import org.dxworks.sonarqube.client.http.SonarqubePathResolver;
-import org.dxworks.sonarqube.client.http.project.dto.SonarqubeProjectDTO;
-import org.dxworks.sonarqube.client.http.project.dto.SonarqubeProjectWrapperDTO;
+import org.dxworks.sonarqube.client.http.project.dto.SonarProject;
+import org.dxworks.sonarqube.client.http.project.dto.SonarProjectWrapper;
 
-public class SonarqubeProjectService extends HttpService {
-	public SonarqubeProjectService(String baseUrl) {
+public class SonarProjectService extends HttpService {
+	public SonarProjectService(String baseUrl) {
 		super(new SonarqubePathResolver(baseUrl));
 	}
 
-	public SonarqubeProjectService(String baseUrl, HttpRequestInitializer httpRequestInitializer) {
+	public SonarProjectService(String baseUrl, HttpRequestInitializer httpRequestInitializer) {
 		super(new SonarqubePathResolver(baseUrl), httpRequestInitializer);
 	}
 
-	public SonarqubeProjectDTO create(String key, String name) {
+	public SonarProject create(String key, String name) {
 		return create(key, name, null);
 	}
 
 	@SneakyThrows
-	public SonarqubeProjectDTO create(String key, String name, String visibility) {
+	public SonarProject create(String key, String name, String visibility) {
 		GenericUrl genericUrl = new GenericUrl(pathResolver.getApiPath("projects", "create"));
 		genericUrl.put("name", name);
 		genericUrl.put("project", key);
@@ -31,6 +31,6 @@ public class SonarqubeProjectService extends HttpService {
 			genericUrl.put("visibility", visibility);
 		}
 		HttpResponse response = httpClient.post(genericUrl);
-		return response.parseAs(SonarqubeProjectWrapperDTO.class).getProject();
+		return response.parseAs(SonarProjectWrapper.class).getProject();
 	}
 }

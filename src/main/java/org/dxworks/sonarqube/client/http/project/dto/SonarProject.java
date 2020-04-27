@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class SonarqubeProjectDTO extends GenericJson {
+public class SonarProject extends GenericJson {
 	@Key
 	private String name;
 	@Key

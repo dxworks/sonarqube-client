@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class SonarqubeProjectWrapperDTO extends GenericJson {
+public class SonarProjectWrapper extends GenericJson {
 	@Key
-	private SonarqubeProjectDTO project;
+	private SonarProject project;
 }
