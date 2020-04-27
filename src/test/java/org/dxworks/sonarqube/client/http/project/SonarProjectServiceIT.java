@@ -4,7 +4,7 @@ import org.dxworks.sonarqube.client.http.project.dto.SonarProject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SonarProjectServiceTest {
+class SonarProjectServiceIT {
 
 	@org.junit.jupiter.api.Test
 	void create() {
