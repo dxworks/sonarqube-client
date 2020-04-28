@@ -6,8 +6,10 @@ import org.dxworks.sonarqube.client.http.issue.SonarIssueService;
 import org.dxworks.sonarqube.client.main.input.Period;
 import org.dxworks.sonarqube.client.main.input.Profile;
 import org.dxworks.sonarqube.client.main.input.ProjectInput;
+import org.dxworks.sonarqube.client.main.output.Result;
 import org.dxworks.sonarqube.client.main.output.Results;
 import org.dxworks.sonarqube.client.main.output.ResultsGenerator;
+import org.dxworks.sonarqube.client.main.output.Summary;
 import org.dxworks.utils.java.rest.client.utils.JsonMapper;
 
 import java.io.File;
@@ -27,9 +29,9 @@ public class Main {
 	public static final String DEFAULT_CONFIG_FILE = "./conf.properties";
 
 	public static void main(String[] args) {
-		String configFile = args.length > 0 ? args[0] : DEFAULT_CONFIG_FILE;
+		String configFile = getArg(args, "-config=").orElse(DEFAULT_CONFIG_FILE);
 		Properties properties = getProperties(configFile);
-		Period period = getPeriod(properties);
+		Period period = getPeriod(args, properties);
 		Path pathToOutput = Paths.get(properties.getProperty("output.path"));
 		String outputFilesPrefix = properties.getProperty("output.file.prefix");
 		Optional<String> baseUrl = Optional.ofNullable(properties.getProperty("sonar.url"));
@@ -45,12 +47,30 @@ public class Main {
 		writeOutput(pathToOutput, outputFilesPrefix, results);
 	}
 
+	private static Optional<String> getArg(String[] args, String argName) {
+		return Stream.of(args).filter(arg -> arg.startsWith(argName)).findFirst()
+				.map(arg -> arg.substring(argName.length()));
+	}
+
 	@SneakyThrows
 	private static void writeOutput(Path pathToOutput, String outputFilesPrefix, Results results) {
 		File openFile = pathToOutput.resolve(getPrefixedFilename(outputFilesPrefix, "open.json")).toFile();
 		File closedFile = pathToOutput.resolve(getPrefixedFilename(outputFilesPrefix, "closed.json")).toFile();
 		jsonMapper.writeJSON(new FileWriter(openFile), results.getOpen());
 		jsonMapper.writeJSON(new FileWriter(closedFile), results.getClosed());
+		printSummary(pathToOutput, outputFilesPrefix, results);
+	}
+
+	@SneakyThrows
+	private static void printSummary(Path pathToOutput, String outputFilesPrefix, Results results) {
+		File summaryFile = pathToOutput.resolve(getPrefixedFilename(outputFilesPrefix, "summary.json")).toFile();
+		jsonMapper.writeJSON(new FileWriter(summaryFile),
+				Summary.builder().openEffort(getSumOfValues(results.getOpen()))
+						.closedEffort(getSumOfValues(results.getClosed())).build());
+	}
+
+	private static long getSumOfValues(List<Result> resultList) {
+		return resultList.stream().mapToLong(Result::getValue).sum();
 	}
 
 	private static String getPrefixedFilename(String prefix, String name) {
@@ -77,14 +97,25 @@ public class Main {
 		}).collect(Collectors.toList());
 	}
 
-	private static Period getPeriod(Properties properties) {
-		String startDate = properties.getProperty("period.start");
-		String endDate = properties.getProperty("period.end");
+	private static Period getPeriod(String[] args, Properties properties) {
+		String argName = "-period=";
+		Optional<String> datesString = getArg(args, argName);
+		String startDate = datesString.map(it -> getDate(it, 0)).orElse(properties.getProperty("period.start"));
+		String endDate = datesString.map(it -> getDate(it, 1)).orElse(properties.getProperty("period.end"));
 		if (startDate == null || endDate == null)
 			return null;
 		LocalDate start = LocalDate.parse(startDate, dateFormatter);
 		LocalDate end = LocalDate.parse(endDate, dateFormatter).plusDays(1);
 		return Period.builder().start(start).end(end).build();
+	}
+
+	private static String getDate(String datesString, int index) {
+		try {
+			return datesString.split(":")[index];
+		} catch (Exception e) {
+			System.out.println("Wrong period format: " + datesString);
+		}
+		return null;
 	}
 
 	@SneakyThrows
