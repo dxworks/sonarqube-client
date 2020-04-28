@@ -1,0 +1,17 @@
+{
+  "category": "maintainability",
+  "axes": [
+    {
+      "name": "complexity",
+      "rules": [
+        "Web:S1827"
+      ]
+    },
+    {
+      "name": "readability",
+      "rules": [
+        "Web:AvoidCommentedOutCodeCheck"
+      ]
+    }
+  ]
+}
