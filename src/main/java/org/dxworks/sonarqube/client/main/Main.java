@@ -104,7 +104,7 @@ public class Main {
 		String endDate = datesString.map(it -> getDate(it, 1)).orElse(properties.getProperty("period.end"));
 		if (startDate == null || endDate == null)
 			return null;
-		LocalDate start = LocalDate.parse(startDate, dateFormatter);
+		LocalDate start = LocalDate.parse(startDate, dateFormatter).plusDays(1);
 		LocalDate end = LocalDate.parse(endDate, dateFormatter).plusDays(1);
 		return Period.builder().start(start).end(end).build();
 	}
