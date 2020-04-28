@@ -19,18 +19,19 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
 	private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final JsonMapper jsonMapper = new JsonMapper();
 	public static final String DEFAULT_CONFIG_FILE = "./conf.properties";
 
-	@SneakyThrows
 	public static void main(String[] args) {
 		String configFile = args.length > 0 ? args[0] : DEFAULT_CONFIG_FILE;
 		Properties properties = getProperties(configFile);
 		Period period = getPeriod(properties);
 		Path pathToOutput = Paths.get(properties.getProperty("output.path"));
+		String outputFilesPrefix = properties.getProperty("output.file.prefix");
 		Optional<String> baseUrl = Optional.ofNullable(properties.getProperty("sonar.url"));
 		List<ProjectInput> projectInputs = getProjectInputs(properties);
 		Profile profile = readProfile(properties);
@@ -41,10 +42,20 @@ public class Main {
 
 		Results results = new ResultsGenerator(issues, projectInputs, period).getResults(profile);
 		pathToOutput.toFile().mkdirs();
-		File openFile = pathToOutput.resolve("open.json").toFile();
-		File closedFile = pathToOutput.resolve("closed.json").toFile();
+		writeOutput(pathToOutput, outputFilesPrefix, results);
+	}
+
+	@SneakyThrows
+	private static void writeOutput(Path pathToOutput, String outputFilesPrefix, Results results) {
+		File openFile = pathToOutput.resolve(getPrefixedFilename(outputFilesPrefix, "open.json")).toFile();
+		File closedFile = pathToOutput.resolve(getPrefixedFilename(outputFilesPrefix, "closed.json")).toFile();
 		jsonMapper.writeJSON(new FileWriter(openFile), results.getOpen());
 		jsonMapper.writeJSON(new FileWriter(closedFile), results.getClosed());
+	}
+
+	private static String getPrefixedFilename(String prefix, String name) {
+		return Stream.concat(Stream.of(prefix).filter(Objects::nonNull), Stream.of(name))
+				.collect(Collectors.joining("-"));
 	}
 
 	@SneakyThrows
