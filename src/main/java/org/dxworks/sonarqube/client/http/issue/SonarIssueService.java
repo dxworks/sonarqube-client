@@ -10,7 +10,7 @@ import org.dxworks.sonarqube.client.http.SonarqubePathResolver;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarComponent;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarIssue;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarIssueSearchResponse;
-import org.loose.fis.project.proofing.tool.http.PathResolver;
+import org.dxworks.utils.java.rest.client.PathResolver;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,4 +1,4 @@
-package org.dxworks.sonarqube.client.main;
+package org.dxworks.sonarqube.client.main.input;
 
 import com.google.api.client.util.Key;
 import lombok.Data;

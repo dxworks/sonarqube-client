@@ -1,7 +1,11 @@
-package org.dxworks.sonarqube.client.main;
+package org.dxworks.sonarqube.client.main.output;
 
 import org.dxworks.sonarqube.client.http.issue.Component;
 import org.dxworks.sonarqube.client.http.issue.Issue;
+import org.dxworks.sonarqube.client.main.input.Axis;
+import org.dxworks.sonarqube.client.main.input.Period;
+import org.dxworks.sonarqube.client.main.input.Profile;
+import org.dxworks.sonarqube.client.main.input.ProjectInput;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +19,7 @@ public class ResultsGenerator {
 	private List<ProjectInput> projectInputs;
 	private Period period;
 
-	ResultsGenerator(List<Issue> issues, List<ProjectInput> projectInputs, Period period) {
+	public ResultsGenerator(List<Issue> issues, List<ProjectInput> projectInputs, Period period) {
 		this.issues = issues;
 		this.projectInputs = projectInputs;
 		this.period = period;

@@ -1,8 +1,9 @@
 package org.dxworks.sonarqube.client.http;
 
 import com.google.api.client.http.HttpRequestInitializer;
-import org.loose.fis.project.proofing.tool.http.HttpClient;
-import org.loose.fis.project.proofing.tool.http.PathResolver;
+import org.dxworks.utils.java.rest.client.HttpClient;
+import org.dxworks.utils.java.rest.client.PathResolver;
+
 
 public abstract class HttpService {
 	protected final PathResolver pathResolver;

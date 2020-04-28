@@ -3,7 +3,12 @@ package org.dxworks.sonarqube.client.main;
 import lombok.SneakyThrows;
 import org.dxworks.sonarqube.client.http.issue.Issue;
 import org.dxworks.sonarqube.client.http.issue.SonarIssueService;
-import org.loose.fis.project.proofing.tool.utils.JsonMapper;
+import org.dxworks.sonarqube.client.main.input.Period;
+import org.dxworks.sonarqube.client.main.input.Profile;
+import org.dxworks.sonarqube.client.main.input.ProjectInput;
+import org.dxworks.sonarqube.client.main.output.Results;
+import org.dxworks.sonarqube.client.main.output.ResultsGenerator;
+import org.dxworks.utils.java.rest.client.utils.JsonMapper;
 
 import java.io.File;
 import java.io.FileInputStream;
