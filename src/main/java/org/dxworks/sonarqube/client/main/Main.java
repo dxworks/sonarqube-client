@@ -23,10 +23,12 @@ import java.util.stream.Collectors;
 public class Main {
 	private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final JsonMapper jsonMapper = new JsonMapper();
+	public static final String DEFAULT_CONFIG_FILE = "./conf.properties";
 
 	@SneakyThrows
 	public static void main(String[] args) {
-		Properties properties = getProperties();
+		String configFile = args.length > 0 ? args[0] : DEFAULT_CONFIG_FILE;
+		Properties properties = getProperties(configFile);
 		Period period = getPeriod(properties);
 		Path pathToOutput = Paths.get(properties.getProperty("output.path"));
 		Optional<String> baseUrl = Optional.ofNullable(properties.getProperty("sonar.url"));
@@ -75,9 +77,9 @@ public class Main {
 	}
 
 	@SneakyThrows
-	private static Properties getProperties() {
+	private static Properties getProperties(String configFile) {
 		Properties properties = new Properties();
-		File file = Paths.get("./conf.properties").toFile();
+		File file = Paths.get(configFile).toFile();
 		properties.load(new FileInputStream(file));
 		return properties;
 	}
