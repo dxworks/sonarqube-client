@@ -33,8 +33,9 @@ public class ResultsGenerator {
         return Results.builder().open(open).closed(closed).build();
     }
 
-    private List<Result> getResultList(Profile profile, List<Issue> issuesList, Predicate<Issue> filter) {
+    private List<Result> getResultList(Profile profile, List<Issue> issuesList, Predicate<Issue> issuePredicate) {
         Map<Axis, List<Issue>> axesToIssues = issuesList.stream()
+                .filter(issuePredicate)
                 .filter(issue -> getAxisForRule(profile, issue.getRule()) != null)
                 .collect(Collectors.groupingBy(issue -> getAxisForRule(profile, issue.getRule())));
 
