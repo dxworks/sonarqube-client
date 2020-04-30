@@ -4,6 +4,7 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.util.Data;
+import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import org.dxworks.sonarqube.client.http.SonarService;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarComponent;
@@ -14,10 +15,17 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SonarIssueService extends SonarService {
 
+    public static final ImmutableMap<String, Integer> UNITS_TO_VALUES = ImmutableMap.of(
+            "w", 7 * 24 * 60,
+            "d", 24 * 60,
+            "h", 60,
+            "min", 1);
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
     public SonarIssueService(String baseUrl) {
@@ -50,20 +58,43 @@ public class SonarIssueService extends SonarService {
         } while (searchResponse.getP() * searchResponse.getPs() < searchResponse.getTotal());
 
         return allIssues.stream()
-                .map(sonarIssue -> Issue.builder().rule(sonarIssue.getRule()).project(sonarIssue.getProject())
-                        .component(getComponent(allComponents, sonarIssue)).effort(getEffort(sonarIssue.getEffort()))
+                .map(sonarIssue -> Issue.builder().rule(sonarIssue.getRule())
+                        .project(sonarIssue.getProject())
+                        .component(getComponent(allComponents, sonarIssue))
+                        .effort(getEffort(sonarIssue.getEffort()))
                         .creationDate(getDate(sonarIssue.getCreationDate()))
                         .closeDate(getDate(sonarIssue.getCloseDate())).build()).collect(Collectors.toList());
     }
 
-    private Long getEffort(String effort) {
-        long min;
-        try {
-            min = Long.parseLong(effort.split("min")[0]);
-        } catch (Exception e) {
-            min = 0L;
+    Long getEffort(String effort) {
+        if (effort == null) return 0L;
+
+        Pattern pattern = Pattern.compile("\\d+[a-zA-Z]+");
+        Matcher matcher = pattern.matcher(effort);
+
+        long totalEffortInMinutes = 0;
+
+        while (matcher.find()) {
+            String group = matcher.group().trim();
+            totalEffortInMinutes += getValueInMinutes(effort, group);
         }
-        return min;
+
+        return totalEffortInMinutes;
+    }
+
+    Integer getValueInMinutes(String effort, String group) {
+        return UNITS_TO_VALUES.entrySet().stream()
+                .filter(entry -> group.endsWith(entry.getKey()))
+                .findFirst()
+                .map(entry -> getIntegerValue(group, entry) * entry.getValue())
+                .orElseGet(() -> {
+                    System.out.println("WARNING: unknown time measure " + group + " in " + effort);
+                    return 0;
+                });
+    }
+
+    private int getIntegerValue(String group, Map.Entry<String, Integer> entry) {
+        return Integer.parseInt(group.substring(0, group.length() - entry.getKey().length()));
     }
 
     private ZonedDateTime getDate(String creationDate) {

@@ -12,6 +12,6 @@ public class Period {
     private ZonedDateTime end;
 
     public boolean contains(ZonedDateTime date) {
-        return start.isBefore(date) && date.isBefore(end);
+        return start.isBefore(date) && (date.isBefore(end) || date.isEqual(end));
     }
 }

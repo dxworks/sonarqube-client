@@ -15,53 +15,60 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ResultsGenerator {
-	private final List<Issue> issues;
-	private List<ProjectInput> projectInputs;
-	private Period period;
+    private final List<Issue> issues;
+    private List<ProjectInput> projectInputs;
+    private Period period;
 
-	public ResultsGenerator(List<Issue> issues, List<ProjectInput> projectInputs, Period period) {
-		this.issues = issues;
-		this.projectInputs = projectInputs;
-		this.period = period;
-	}
+    public ResultsGenerator(List<Issue> issues, List<ProjectInput> projectInputs, Period period) {
+        this.issues = issues;
+        this.projectInputs = projectInputs;
+        this.period = period;
+    }
 
-	public Results getResults(Profile profile) {
+    public Results getResults(Profile profile) {
 
-		List<Result> open = getResultList(profile, issues, issue -> period.contains(issue.getCreationDate()));
-		List<Result> closed = getResultList(profile, issues,
-				issue -> issue.getCloseDate() != null && period.contains(issue.getCloseDate()));
-		return Results.builder().open(open).closed(closed).build();
-	}
+        List<Result> open = getResultList(profile, issues, issue -> period.contains(issue.getCreationDate()));
+        List<Result> closed = getResultList(profile, issues,
+                issue -> issue.getCloseDate() != null && period.contains(issue.getCloseDate()));
+        return Results.builder().open(open).closed(closed).build();
+    }
 
-	private List<Result> getResultList(Profile profile, List<Issue> issuesList, Predicate<Issue> filter) {
-		Map<Component, List<Issue>> componentIssueMap = issuesList.stream().filter(filter)
-				.collect(Collectors.groupingBy(Issue::getComponent));
+    private List<Result> getResultList(Profile profile, List<Issue> issuesList, Predicate<Issue> filter) {
+        Map<Axis, List<Issue>> axesToIssues = issuesList.stream()
+                .filter(issue -> getAxisForRule(profile, issue.getRule()) != null)
+                .collect(Collectors.groupingBy(issue -> getAxisForRule(profile, issue.getRule())));
 
-		return componentIssueMap.entrySet().stream().flatMap(componentToIssue -> {
-			Map<String, List<Issue>> axisToIssues = getAxisToIssuesMap(componentToIssue.getValue(), profile);
-			return axisToIssues.entrySet().stream().map(axisToIssue -> Result.builder().category(profile.getCategory())
-					.file(getFilePath(componentToIssue.getValue().get(0))).name(axisToIssue.getKey())
-					.value(axisToIssue.getValue().stream().mapToLong(Issue::getEffort).sum()).build());
-		}).collect(Collectors.toList());
-	}
+        return axesToIssues.entrySet().stream()
+                .flatMap(entry -> {
+                    Map<Component, List<Issue>> filesToList = entry.getValue().stream().collect(Collectors.groupingBy(Issue::getComponent));
+                    return filesToList.entrySet().stream()
+                            .map(fileEntry -> Result.builder()
+                                    .category(profile.getCategory())
+                                    .file(getFilePath(fileEntry.getValue().stream().findFirst().get()))
+                                    .name(entry.getKey().getName())
+                                    .value(fileEntry.getValue().stream().mapToLong(Issue::getEffort).sum())
+                                    .build());
+                }).collect(Collectors.toList());
+    }
 
-	private Map<String, List<Issue>> getAxisToIssuesMap(List<Issue> issues, Profile profile) {
-		return profile.getAxes().stream()
-				.collect(Collectors.toMap(Axis::getName, axis -> getIssuesForAxis(axis, issues)));
-	}
+    private Axis getAxisForRule(Profile profile, String rule) {
+        return profile.getAxes().stream()
+                .filter(axis -> axis.getRules().contains(rule))
+                .findAny()
+                .orElse(null);
+    }
 
-	private List<Issue> getIssuesForAxis(Axis axis, List<Issue> issues) {
-		return issues.stream().filter(issue -> axis.getRules().contains(issue.getRule())).collect(Collectors.toList());
-	}
+    private String getFilePath(Issue issue) {
+        return Stream.concat(Stream.of(getPrefixOrNull(issue)).filter(Objects::nonNull),
+                Stream.of(issue.getComponent().getPath())).collect(Collectors.joining("/"));
+    }
 
-	private String getFilePath(Issue issue) {
-		return Stream.concat(Stream.of(getPrefixOrNull(issue)).filter(Objects::nonNull),
-				Stream.of(issue.getComponent().getPath())).collect(Collectors.joining("/"));
-	}
-
-	private String getPrefixOrNull(Issue issue) {
-		return projectInputs.stream().filter(projectInput -> projectInput.getKey().equals(issue.getProject()))
-				.findFirst().map(ProjectInput::getPrefix).orElse(null);
-	}
+    private String getPrefixOrNull(Issue issue) {
+        return projectInputs.stream()
+                .filter(projectInput -> projectInput.getKey().equals(issue.getProject()))
+                .findFirst()
+                .map(ProjectInput::getPrefix)
+                .orElse(null);
+    }
 
 }

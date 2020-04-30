@@ -62,11 +62,11 @@ public class Main {
 
     private static void handleTaskResolutionResult(CompletableFuture<Boolean> result, Throwable t) {
         if (t != null) {
-            result.complete(true);
+            result.complete(false);
             System.out.println("Getting task resolution has failed!");
             t.printStackTrace();
         }
-        result.complete(false);
+        result.complete(true);
     }
 
     @SneakyThrows

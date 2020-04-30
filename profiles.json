@@ -12,6 +12,12 @@
       "rules": [
         "Web:AvoidCommentedOutCodeCheck"
       ]
+    },
+    {
+      "name": "test",
+      "rules": [
+        "java:S3740"
+      ]
     }
   ]
 }
