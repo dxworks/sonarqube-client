@@ -6,6 +6,7 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.util.Data;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
+import org.apache.commons.collections4.CollectionUtils;
 import org.dxworks.sonarqube.client.http.SonarService;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarComponent;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarIssue;
@@ -37,11 +38,12 @@ public class SonarIssueService extends SonarService {
     }
 
     @SneakyThrows
-    public List<Issue> getAllIssuesAndComponentsForProjects(List<String> projectKeys) {
-        GenericUrl genericUrl = new GenericUrl(pathResolver.getApiPath("issues", "search"));
-        genericUrl.put("componentKeys", String.join(",", projectKeys));
+    public SonarIssuesResult getAllIssuesAndComponentsForProjects(List<String> projectKeys, List<String> rules) {
+        GenericUrl genericUrl = createGenericUrl(projectKeys, rules);
         Set<SonarIssue> allIssues = new HashSet<>();
         Map<String, SonarComponent> allComponents = new HashMap<>();
+
+        Long totalEffort = null;
 
         SonarIssueSearchResponse searchResponse;
         Long currentPage = 1L;
@@ -51,19 +53,33 @@ public class SonarIssueService extends SonarService {
             genericUrl.set("ps", pageSize);
             HttpResponse response = httpClient.get(genericUrl);
             searchResponse = response.parseAs(SonarIssueSearchResponse.class);
+            if (totalEffort == null)
+                totalEffort = searchResponse.getEffortTotal();
+
             allIssues.addAll(searchResponse.getIssues());
             allComponents.putAll(searchResponse.getComponents().stream()
                     .collect(Collectors.toMap(SonarComponent::getKey, Function.identity())));
             currentPage++;
         } while (searchResponse.getP() * searchResponse.getPs() < searchResponse.getTotal());
 
-        return allIssues.stream()
+        List<Issue> issues = allIssues.stream()
                 .map(sonarIssue -> Issue.builder().rule(sonarIssue.getRule())
                         .project(sonarIssue.getProject())
                         .component(getComponent(allComponents, sonarIssue))
                         .effort(getEffort(sonarIssue.getEffort()))
                         .creationDate(getDate(sonarIssue.getCreationDate()))
                         .closeDate(getDate(sonarIssue.getCloseDate())).build()).collect(Collectors.toList());
+
+        return new SonarIssuesResult(totalEffort != null ? totalEffort : 0, issues);
+    }
+
+    private GenericUrl createGenericUrl(List<String> projectKeys, List<String> rules) {
+        GenericUrl genericUrl = new GenericUrl(pathResolver.getApiPath("issues", "search"));
+        if (!CollectionUtils.isEmpty(projectKeys))
+            genericUrl.put("componentKeys", String.join(",", projectKeys));
+        if (!CollectionUtils.isEmpty(rules))
+            genericUrl.put("rules", String.join(",", rules));
+        return genericUrl;
     }
 
     Long getEffort(String effort) {

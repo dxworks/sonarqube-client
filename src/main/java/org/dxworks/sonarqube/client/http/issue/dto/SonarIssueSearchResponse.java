@@ -10,15 +10,17 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SonarIssueSearchResponse extends GenericJson {
-	@Key
-	private Long p;
-	@Key
-	private Long ps;
-	@Key
-	private Long total;
+    @Key
+    private Long p;
+    @Key
+    private Long ps;
+    @Key
+    private Long total;
+    @Key
+    private Long effortTotal;
 
-	@Key
-	private List<SonarIssue> issues;
-	@Key
-	private List<SonarComponent> components;
+    @Key
+    private List<SonarIssue> issues;
+    @Key
+    private List<SonarComponent> components;
 }

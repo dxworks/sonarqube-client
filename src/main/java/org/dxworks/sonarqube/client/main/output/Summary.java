@@ -7,8 +7,10 @@ import lombok.Data;
 @Data
 @Builder
 public class Summary {
-	@Key
-	private Long openEffort;
-	@Key
+	@Key("Open Effort")
+	private Long openedEffort;
+	@Key("Closed Effort")
 	private Long closedEffort;
+	@Key("Current Effort")
+	private Long currentTotalEffort;
 }

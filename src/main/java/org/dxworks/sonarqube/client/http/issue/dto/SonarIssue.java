@@ -20,4 +20,12 @@ public class SonarIssue extends GenericJson {
 	private String creationDate;
 	@Key
 	private String closeDate;
+	@Key
+	private String resolution;
+	@Key
+	private String status;
+	@Key
+	private String severity;
+	@Key
+	private String type;
 }

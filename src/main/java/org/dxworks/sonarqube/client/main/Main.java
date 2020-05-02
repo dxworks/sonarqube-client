@@ -6,6 +6,7 @@ import org.dxworks.sonarqube.client.http.ce.SonarTaskService;
 import org.dxworks.sonarqube.client.http.ce.TaskStatus;
 import org.dxworks.sonarqube.client.http.issue.Issue;
 import org.dxworks.sonarqube.client.http.issue.SonarIssueService;
+import org.dxworks.sonarqube.client.http.issue.SonarIssuesResult;
 import org.dxworks.sonarqube.client.main.input.ProjectInput;
 import org.dxworks.sonarqube.client.main.output.Result;
 import org.dxworks.sonarqube.client.main.output.Results;
@@ -37,17 +38,20 @@ public class Main {
             System.exit(1);
         }
 
-        List<Issue> issues = new SonarIssueService(sonarClientConfig.getBaseUrl()).getAllIssuesAndComponentsForProjects(
+        SonarIssuesResult sonarIssuesResult = new SonarIssueService(sonarClientConfig.getBaseUrl()).getAllIssuesAndComponentsForProjects(
                 sonarClientConfig.getProjectInputs().stream()
                         .map(ProjectInput::getKey)
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()),
+                sonarClientConfig.getProfile().getAllRules());
 
+        List<Issue> issues = sonarIssuesResult.getIssues();
         Results results = new ResultsGenerator(issues, sonarClientConfig.getProjectInputs(), sonarClientConfig.getPeriod()).getResults(sonarClientConfig.getProfile());
+        results.setTotalEffort(sonarIssuesResult.getTotalEffort());
         sonarClientConfig.getPathToOutput().toFile().mkdirs();
         writeOutput(sonarClientConfig.getPathToOutput(), sonarClientConfig.getOutputFilesPrefix(), results);
     }
 
-    public static <T> CompletableFuture<Boolean> noneMatch(List<? extends CompletionStage<T>> l, Predicate<T> criteria) {
+    private static <T> CompletableFuture<Boolean> noneMatch(List<? extends CompletionStage<T>> l, Predicate<T> criteria) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         Consumer<T> whenMatching = v -> {
             if (criteria.test(v))
@@ -88,8 +92,9 @@ public class Main {
     private static void printSummary(Path pathToOutput, String outputFilesPrefix, Results results) {
         File summaryFile = pathToOutput.resolve(getPrefixedFilename(outputFilesPrefix, "summary.json")).toFile();
         jsonMapper.writeJSON(new FileWriter(summaryFile),
-                Summary.builder().openEffort(getSumOfValues(results.getOpen()))
-                        .closedEffort(getSumOfValues(results.getClosed())).build());
+                Summary.builder().openedEffort(getSumOfValues(results.getOpen()))
+                        .closedEffort(getSumOfValues(results.getClosed()))
+                        .currentTotalEffort(results.getTotalEffort()).build());
     }
 
     private static long getSumOfValues(List<Result> resultList) {

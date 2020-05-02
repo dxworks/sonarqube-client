@@ -109,12 +109,14 @@ public class SonarClientConfig {
         String projectInputsString = properties.getProperty(PROJECTS);
 
         List<String> projectInputsList = Arrays.asList(projectInputsString.split(","));
-        return projectInputsList.stream().map(inputString -> {
-            List<String> keyAndPrefix = new ArrayList<>(Arrays.asList(inputString.split(">")));
-            String key = keyAndPrefix.remove(0);
-            String prefix = keyAndPrefix.stream().findFirst().orElse(null);
-            return ProjectInput.builder().key(key).prefix(prefix).build();
-        }).collect(Collectors.toList());
+        return projectInputsList.stream()
+                .map(inputString -> {
+                    List<String> keyAndPrefix = new ArrayList<>(Arrays.asList(inputString.split(">")));
+                    String key = keyAndPrefix.remove(0);
+                    String prefix = keyAndPrefix.stream().findFirst().orElse(null);
+                    return ProjectInput.builder().key(key).prefix(prefix).build();
+                })
+                .collect(Collectors.toList());
     }
 
     private Period getPeriod(String[] args, Properties properties) {
