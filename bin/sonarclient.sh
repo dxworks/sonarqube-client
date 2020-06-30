@@ -1,1 +1,1 @@
-java -jar sonarclient.jar "$@"
+java -jar sonarclient.jar $*

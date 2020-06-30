@@ -6,7 +6,7 @@
 
     <groupId>org.dxworks.sonarqube.client</groupId>
     <artifactId>sonarqube-client</artifactId>
-    <version>0.1</version>
+    <version>0.1-SNAPSHOT</version>
 
     <properties>
         <jar.final.name>sonarclient</jar.final.name>
