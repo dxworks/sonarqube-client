@@ -99,8 +99,7 @@ public class SonarClientConfig {
     private String getDate(String datesString, int index) {
         try {
             return datesString.split(":")[index];
-        } catch (Exception e) {
-            System.out.println("Wrong period format: " + datesString);
+        } catch (Exception ignored) {
         }
         return null;
     }
@@ -123,16 +122,19 @@ public class SonarClientConfig {
         Optional<String> datesString = getArg(args, PERIOD);
         String startDate = datesString.map(it -> getDate(it, 0)).orElse(properties.getProperty(PERIOD_START));
         String endDate = datesString.map(it -> getDate(it, 1)).orElse(properties.getProperty(PERIOD_END));
-        if (startDate == null || endDate == null)
-            throw new IllegalArgumentException("Start date or end date not provided correctly!");
 
-        ZonedDateTime start = LocalDate.parse(startDate, dateFormatter).atStartOfDay(ZERO_ZONE_ID);
-        ZonedDateTime end = LocalDate.parse(endDate, dateFormatter).atTime(LocalTime.MAX).atZone(ZERO_ZONE_ID);
+        ZonedDateTime start = startDate != null ? LocalDate.parse(startDate, dateFormatter).atStartOfDay(ZERO_ZONE_ID) : null;
+        ZonedDateTime end = endDate != null ? LocalDate.parse(endDate, dateFormatter).atTime(LocalTime.MAX).atZone(ZERO_ZONE_ID) : null;
+
+        if (start == null || end == null) {
+            System.out.println("Period: " + start + " : " + end);
+            return new Period(start, end);
+        }
 
         if (!start.isBefore(end))
             throw new IllegalArgumentException("Start date is after end date!");
 
-        return Period.builder().start(start).end(end).build();
+        return new Period(start, end);
     }
 
     @SneakyThrows
