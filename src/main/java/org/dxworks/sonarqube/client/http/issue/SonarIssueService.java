@@ -2,7 +2,6 @@ package org.dxworks.sonarqube.client.http.issue;
 
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpResponse;
 import com.google.api.client.util.Data;
 import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
@@ -11,6 +10,7 @@ import org.dxworks.sonarqube.client.http.SonarService;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarComponent;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarIssue;
 import org.dxworks.sonarqube.client.http.issue.dto.SonarIssueSearchResponse;
+import org.dxworks.utils.java.rest.client.response.HttpResponse;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;

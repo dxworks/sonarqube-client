@@ -1,10 +1,10 @@
 package org.dxworks.sonarqube.client.http.ce;
 
 import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpResponse;
 import lombok.SneakyThrows;
 import org.dxworks.sonarqube.client.http.SonarService;
 import org.dxworks.sonarqube.client.http.ce.dto.TaskResponse;
+import org.dxworks.utils.java.rest.client.response.HttpResponse;
 
 public class SonarTaskService extends SonarService {
     public SonarTaskService(String apiBaseUrl) {

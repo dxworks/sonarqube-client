@@ -13,6 +13,6 @@ class SonarIssueServiceIT {
 	void getAllIssuesAndComponentsForProjects() {
         SonarIssueService sonarIssueService = new SonarIssueService("http://localhost:9000");
         SonarIssuesResult sonarIssuesResult = sonarIssueService.getAllIssuesAndComponentsForProjects(singletonList("IG"), Arrays.asList());
-        assertNotNull(sonarIssueService);
+        assertNotNull(sonarIssuesResult);
     }
 }

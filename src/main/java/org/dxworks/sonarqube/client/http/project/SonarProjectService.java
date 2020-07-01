@@ -2,11 +2,11 @@ package org.dxworks.sonarqube.client.http.project;
 
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpResponse;
 import lombok.SneakyThrows;
 import org.dxworks.sonarqube.client.http.SonarService;
 import org.dxworks.sonarqube.client.http.project.dto.SonarProject;
 import org.dxworks.sonarqube.client.http.project.dto.SonarProjectWrapper;
+import org.dxworks.utils.java.rest.client.response.HttpResponse;
 
 public class SonarProjectService extends SonarService {
     public SonarProjectService(String baseUrl) {
