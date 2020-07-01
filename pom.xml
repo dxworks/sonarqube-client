@@ -81,7 +81,9 @@
         <profile>
             <id>github-default</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>github</name>
+                </property>
             </activation>
             <distributionManagement>
                 <repository>
