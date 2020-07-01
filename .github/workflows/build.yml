@@ -1,4 +1,4 @@
-name: Buil
+name: Build
 
 # Run deployment to Github packages on commits to the `master` branch
 on:  pull_request
