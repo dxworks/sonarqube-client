@@ -3,9 +3,7 @@ This app is a Java library for using the Sonarqube REST API.
 
 Visit us on [Github](https://github.com/dxworks/sonarqube-client).
 
-## Features
-
-#### Config
+## Config
 
 SonarQube server url: property `sonar.url`, env `SONAR_CLIENT_SONAR_URL`
 
@@ -17,7 +15,10 @@ Path to profiles file: property `profiles.path`, env `SONAR_CLIENT_PROFILES_PATH
 
 SonarQube projects: property `projects`, env `SONAR_CLIENT_PROJECTS` in the following format <br/>`projectName1>projectFilesPrefix1, proj2>pref2`
 
-### Usage
+## Usage
 
 to do
 
+## Features
+
+to do
