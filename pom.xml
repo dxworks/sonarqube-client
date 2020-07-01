@@ -13,19 +13,6 @@
         <main.class>org.dxworks.sonarqube.client.main.Main</main.class>
     </properties>
 
-    <distributionManagement>
-        <repository>
-            <id>marios-nexus</id>
-            <name>maven-releases</name>
-            <url>http://89.39.83.106:8081/repository/maven-releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>marios-nexus</id>
-            <name>maven-snapshots</name>
-            <url>http://89.39.83.106:8081/repository/maven-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
@@ -61,28 +48,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.13</version>
-                <executions>
-                    <execution>
-                        <id>default</id>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>push</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <repository>dxworks/sonar-client</repository>
-                    <tag>latest</tag>
-                    <buildArgs>
-                        <JAR_FILE>${jar.final.name}.jar</JAR_FILE>
-                    </buildArgs>
-                    <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -111,11 +76,76 @@
         </dependency>
     </dependencies>
 
+
+    <profiles>
+        <profile>
+            <id>github-default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub dxworks Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/dxworks/sonarqube-client</url>
+                </repository>
+                <snapshotRepository>
+                    <id>github</id>
+                    <name>GitHub dxworks Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/dxworks/sonarqube-client</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>deployDocker</id>
+            <activation>
+                <property>
+                    <name>docker</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>dockerfile-maven-plugin</artifactId>
+                        <version>1.4.13</version>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <repository>dxworks/sonar-client</repository>
+                            <tag>latest</tag>
+                            <buildArgs>
+                                <JAR_FILE>${jar.final.name}.jar</JAR_FILE>
+                            </buildArgs>
+                            <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.2</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
     <repositories>
         <repository>
-            <id>marios-nexus</id>
-            <name>Nexus</name>
-            <url>http://89.39.83.106:8081/repository/maven-snapshots</url>
+            <id>github</id>
+            <name>GitHub Java Rest Client Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/dxworks/java-rest-client</url>
         </repository>
     </repositories>
 
