@@ -31,8 +31,9 @@ jobs:
           server-id: docker.io
           server-username: DOCKER_USERNAME
           server-password: DOCKER_PASSWORD
-      - name: Publish to GitHub Packages
+      - name: Publish to Docker hub
         run: mvn clean deploy -Ddocker
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
