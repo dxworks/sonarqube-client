@@ -52,6 +52,7 @@ public class SonarIssueService extends SonarService {
             genericUrl.set("p", currentPage);
             genericUrl.set("ps", pageSize);
             HttpResponse response = httpClient.get(genericUrl);
+
             searchResponse = response.parseAs(SonarIssueSearchResponse.class);
             if (totalEffort == null)
                 totalEffort = searchResponse.getEffortTotal();

@@ -7,6 +7,7 @@ import org.dxworks.sonarqube.client.http.ce.TaskStatus;
 import org.dxworks.sonarqube.client.http.issue.Issue;
 import org.dxworks.sonarqube.client.http.issue.SonarIssueService;
 import org.dxworks.sonarqube.client.http.issue.SonarIssuesResult;
+import org.dxworks.sonarqube.client.http.rule.SonarRulesService;
 import org.dxworks.sonarqube.client.main.input.ProjectInput;
 import org.dxworks.sonarqube.client.main.output.Result;
 import org.dxworks.sonarqube.client.main.output.Results;
@@ -38,17 +39,45 @@ public class Main {
             System.exit(1);
         }
 
-        SonarIssuesResult sonarIssuesResult = new SonarIssueService(sonarClientConfig.getBaseUrl()).getAllIssuesAndComponentsForProjects(
-                sonarClientConfig.getProjectInputs().stream()
-                        .map(ProjectInput::getKey)
-                        .collect(Collectors.toList()),
-                sonarClientConfig.getProfile().getAllRules());
+        SonarRulesService sonarRulesService = new SonarRulesService(sonarClientConfig.getBaseUrl());
 
-        List<Issue> issues = sonarIssuesResult.getIssues();
+
+        List<SonarIssuesResult> issueResults = sonarClientConfig.getProfile().getAxes().stream()
+                .map(axis -> {
+                    List<String> existingRules = filterExistingRules(axis.getRules(), sonarRulesService);
+                    if (existingRules.isEmpty()) {
+                        System.out.printf("Skipping axis %s since there are no rules in this Sonarqube instance \n", axis.getName());
+                        return null;
+                    }
+                    System.out.printf("Getting Issues for axis %s with rules: %s\n", axis.getName(), axis.getRules());
+                    return existingRules;
+                })
+                .filter(Objects::nonNull)
+                .map(rules -> new SonarIssueService(sonarClientConfig.getBaseUrl()).getAllIssuesAndComponentsForProjects(
+                        sonarClientConfig.getProjectInputs().stream()
+                                .map(ProjectInput::getKey)
+                                .collect(Collectors.toList()), rules))
+                .collect(Collectors.toList());
+
+        List<Issue> issues = issueResults.stream()
+                .flatMap(sonarIssuesResult -> sonarIssuesResult.getIssues().stream())
+                .collect(Collectors.toList());
+
         Results results = new ResultsGenerator(issues, sonarClientConfig.getProjectInputs(), sonarClientConfig.getPeriod()).getResults(sonarClientConfig.getProfile());
-        results.setTotalEffort(sonarIssuesResult.getTotalEffort());
+        results.setTotalEffort(issueResults.stream().mapToLong(SonarIssuesResult::getTotalEffort).sum());
         sonarClientConfig.getPathToOutput().toFile().mkdirs();
         writeOutput(sonarClientConfig.getPathToOutput(), sonarClientConfig.getOutputFilesPrefix(), results);
+    }
+
+    private static List<String> filterExistingRules(List<String> rules, SonarRulesService sonarRulesService) {
+        return rules.stream()
+                .filter(rule -> {
+                    if (sonarRulesService.getRule(rule).isPresent())
+                        return true;
+                    System.err.printf("Rule %s could not be found on this Sonarqube instance.\n", rule);
+                    return false;
+                })
+                .collect(Collectors.toList());
     }
 
     private static <T> CompletableFuture<Boolean> noneMatch(List<? extends CompletionStage<T>> l, Predicate<T> criteria) {

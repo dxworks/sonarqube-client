@@ -12,6 +12,7 @@ public interface Constants {
         String SONAR_CLIENT_PROJECTS = "SONAR_CLIENT_PROJECTS";
         String SONAR_CLIENT_SONAR_URL = "SONAR_CLIENT_SONAR_URL";
         String SONAR_CLIENT_PREFIX_OUTPUT = "SONAR_CLIENT_PREFIX_OUTPUT";
+        String SONAR_CLIENT_TASKS = "SONAR_CLIENT_TASKS";
     }
 
     interface ConfigFile {

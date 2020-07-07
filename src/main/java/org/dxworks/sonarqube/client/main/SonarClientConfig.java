@@ -66,6 +66,7 @@ public class SonarClientConfig {
         replaceWithEnvironmentVariable(properties, SONAR_CLIENT_PREFIX_OUTPUT, OUTPUT_FILE_PREFIX);
         replaceWithEnvironmentVariable(properties, SONAR_CLIENT_PROFILES_PATH, PROFILES_PATH);
         replaceWithEnvironmentVariable(properties, SONAR_CLIENT_PROJECTS, PROJECTS);
+        replaceWithEnvironmentVariable(properties, SONAR_CLIENT_TASKS, TASKS);
     }
 
     private void replaceWithEnvironmentVariable(Properties properties, String envVariableName, String propertyName) {
