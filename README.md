@@ -13,12 +13,15 @@ Output file prefix: property `output.file.prefix`, env `SONAR_CLIENT_PREFIX_OUTP
 
 Path to profiles file: property `profiles.path`, env `SONAR_CLIENT_PROFILES_PATH`
 
+Period: properties: `period.start` and `period.end`, no env, please use arguments
+
 SonarQube projects: property `projects`, env `SONAR_CLIENT_PROJECTS` in the following format <br/>`projectName1>projectFilesPrefix1, proj2>pref2`
 
 ## Usage
 
-to do
+##### Arguments:
 
-## Features
+`-config=<path to config file>` default value is ./config/config.properties
 
-to do
+`-period=<start date>:<end date>` date format is yyyy-MM-dd
+
