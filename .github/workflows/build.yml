@@ -3,7 +3,6 @@ name: Build
 # Run mvn clean install on pull requests
 on:  pull_request
 
-
 jobs:
   build:
     runs-on: ubuntu-18.04
