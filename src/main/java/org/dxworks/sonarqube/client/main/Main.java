@@ -1,5 +1,6 @@
 package org.dxworks.sonarqube.client.main;
 
+import com.google.api.client.http.HttpRequestInitializer;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dxworks.sonarqube.client.http.ce.SonarTaskService;
@@ -33,13 +34,16 @@ public class Main {
     public static void main(String... args) {
         SonarClientConfig sonarClientConfig = new SonarClientConfig(args);
 
-        boolean tasksFinishedSuccessfully = checkTasksHaveCompletedSuccessfully(sonarClientConfig.getBaseUrl(), sonarClientConfig.getTasks());
+        HttpRequestInitializer requestInitializer = sonarClientConfig.getRequestInitializer();
+
+        boolean tasksFinishedSuccessfully = checkTasksHaveCompletedSuccessfully(sonarClientConfig.getBaseUrl(), sonarClientConfig.getTasks(), requestInitializer);
         if (!tasksFinishedSuccessfully) {
             System.err.println("Tasks have failed! Aborting analysis...");
             System.exit(1);
         }
 
-        SonarRulesService sonarRulesService = new SonarRulesService(sonarClientConfig.getBaseUrl());
+
+        SonarRulesService sonarRulesService = new SonarRulesService(sonarClientConfig.getBaseUrl(), requestInitializer);
 
 
         List<SonarIssuesResult> issueResults = sonarClientConfig.getProfile().getAxes().stream()
@@ -53,7 +57,7 @@ public class Main {
                     return existingRules;
                 })
                 .filter(Objects::nonNull)
-                .map(rules -> new SonarIssueService(sonarClientConfig.getBaseUrl()).getAllIssuesAndComponentsForProjects(
+                .map(rules -> new SonarIssueService(sonarClientConfig.getBaseUrl(), requestInitializer).getAllIssuesAndComponentsForProjects(
                         sonarClientConfig.getProjectInputs().stream()
                                 .map(ProjectInput::getKey)
                                 .collect(Collectors.toList()), rules))
@@ -103,9 +107,9 @@ public class Main {
     }
 
     @SneakyThrows
-    private static boolean checkTasksHaveCompletedSuccessfully(String baseUrl, List<String> tasks) {
+    private static boolean checkTasksHaveCompletedSuccessfully(String baseUrl, List<String> tasks, HttpRequestInitializer requestInitializer) {
         return noneMatch(CollectionUtils.emptyIfNull(tasks).parallelStream()
-                .map(taskID -> CompletableFuture.supplyAsync(() -> getResolution(baseUrl, taskID))).collect(Collectors.toList()), TaskStatus::hasFailed).get();
+                .map(taskID -> CompletableFuture.supplyAsync(() -> getResolution(baseUrl, taskID, requestInitializer))).collect(Collectors.toList()), TaskStatus::hasFailed).get();
     }
 
     @SneakyThrows
@@ -135,9 +139,9 @@ public class Main {
                 .collect(Collectors.joining("-"));
     }
 
-    private static TaskStatus getResolution(String baseUrl, String taskID) {
+    private static TaskStatus getResolution(String baseUrl, String taskID, HttpRequestInitializer requestInitializer) {
         try {
-            SonarTaskService sonarTaskService = new SonarTaskService(baseUrl);
+            SonarTaskService sonarTaskService = new SonarTaskService(baseUrl, requestInitializer);
             while (true) {
                 TaskStatus taskStatus = sonarTaskService.getTaskStatus(taskID);
                 System.out.printf("Task %s has status %s\n", taskID, taskStatus.name());

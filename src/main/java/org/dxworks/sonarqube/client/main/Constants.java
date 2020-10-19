@@ -24,10 +24,22 @@ public interface Constants {
         String PERIOD_START = "period.start";
         String PERIOD_END = "period.end";
         String PROFILES_PATH = "profiles.path";
+        String AUTHENTICATION_TYPE = "authentication.type";
+        String AUTHENTICATION_USERNAME = "authentication.username";
+        String AUTHENTICATION_PASSWORD = "authentication.password";
+        String AUTHENTICATION_COOKIE = "authentication.cookie";
+        String AUTHENTICATION_BEARER_TOKEN = "authentication.bearerToken";
     }
 
     interface Arguments {
         String PERIOD = "period";
         String CONFIG = "config";
+    }
+
+    interface AuthenticationType {
+        String NONE = "none";
+        String BASIC = "basic";
+        String COOKIE = "cookie";
+        String BEARER = "bearer";
     }
 }

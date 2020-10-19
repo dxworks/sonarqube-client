@@ -1,11 +1,14 @@
 package org.dxworks.sonarqube.client.main;
 
+import com.google.api.client.http.HttpRequestInitializer;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.dxworks.sonarqube.client.main.input.Period;
 import org.dxworks.sonarqube.client.main.input.Profile;
 import org.dxworks.sonarqube.client.main.input.ProjectInput;
+import org.dxworks.utils.java.rest.client.providers.BasicAuthenticationProvider;
+import org.dxworks.utils.java.rest.client.providers.CookieAuthenticationProvider;
 import org.dxworks.utils.java.rest.client.utils.JsonMapper;
 
 import java.io.FileInputStream;
@@ -22,6 +25,7 @@ import java.util.stream.Stream;
 
 import static org.dxworks.sonarqube.client.main.Constants.Arguments.CONFIG;
 import static org.dxworks.sonarqube.client.main.Constants.Arguments.PERIOD;
+import static org.dxworks.sonarqube.client.main.Constants.AuthenticationType.*;
 import static org.dxworks.sonarqube.client.main.Constants.ConfigFile.*;
 import static org.dxworks.sonarqube.client.main.Constants.DEFAULT_SONAR_URL;
 import static org.dxworks.sonarqube.client.main.Constants.Environment.*;
@@ -40,6 +44,12 @@ public class SonarClientConfig {
     private Profile profile;
     private List<String> tasks;
     private String baseUrl;
+    private String authType;
+    private String cookie;
+    private String username;
+    private String password;
+
+    private HttpRequestInitializer requestInitializer;
 
     public SonarClientConfig(String... args) {
         initialize(args);
@@ -90,6 +100,30 @@ public class SonarClientConfig {
 
         Optional<String> baseUrlOption = Optional.ofNullable(properties.getProperty(SONAR_URL));
         baseUrl = baseUrlOption.orElse(DEFAULT_SONAR_URL);
+        requestInitializer = createRequestInitializer(properties);
+    }
+
+    private HttpRequestInitializer createRequestInitializer(Properties properties) {
+        authType = properties.getProperty(AUTHENTICATION_TYPE, NONE);
+        username = properties.getProperty(AUTHENTICATION_USERNAME);
+        password = properties.getProperty(AUTHENTICATION_PASSWORD);
+        cookie = properties.getProperty(AUTHENTICATION_COOKIE);
+
+        switch (authType) {
+
+            case BASIC:
+                return new BasicAuthenticationProvider(username, password);
+            case COOKIE:
+                return new CookieAuthenticationProvider(cookie);
+            case BEARER:
+                System.out.println("[WARNING]: Bearer Authentication not yet supported! No authentication will be used!");
+            case NONE:
+                return req -> {
+                };
+            default:
+                return req -> {
+                };
+        }
     }
 
     private Optional<String> getArg(String[] args, String argName) {
